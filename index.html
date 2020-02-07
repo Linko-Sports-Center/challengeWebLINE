@@ -35,27 +35,6 @@
     }
   </style>
   <script src="js/mescroll.js" type="text/javascript" charset="utf-8"></script>
-<!--
-  <style>
-  body, html {
-    height: 100%;
-    margin: 0;
-  }
-  .bg {
-    /* The image used */
-    background-image: url(photo-1547919307-1ecb10702e6f.jpg);
-
-    /* Full height */
-    height: 100%; 
-
-    /* Center and scale the image nicely */
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: cover;
-  }
-  </style>
--->
-
 </head>
 
 <body>
@@ -127,21 +106,6 @@
     <div class="w3-container" id="availableCourses" style="font-family: 'Noto Sans TC'">
       <span><button class="w3-button w3-circle w3-teal" style="margin: 10px; width: 40px" onclick="refreshCoupons()"><i class="fa fa-refresh" style="margin-left: -3px;"></i></button></span>
       <h4 style="font-family: 'Noto Sans TC'; display: inline;">可參加挑戰賽</h4>
-      
-
-  <!--
-      <div class="w3-card-4" style="width:100%">
-        <header class="w3-container w3-teal">
-          <h4>課程名稱 - </h4>
-        </header>
-        <div class="w3-container">
-          <p>老師名字:</p>
-          <p>日期時間:</p>
-          <p>費用:</p>
-        </div>
-        <button class="w3-button w3-block w3-indigo" onclick="使用挑戰賽(1)">報名</button>
-      </div>
-  -->
     </div>   
     
     <hr>
@@ -212,7 +176,7 @@
     var couponMember=[];  
     var userPhoneNumber;
     var allDataReady=0;
-    
+        
     var 運動資料=[];
 
     notInCoupon=[];
@@ -256,13 +220,14 @@
       }
     }
 
+    // 非同步
     function callAPI(param, loadingMessage) {
       return new Promise(function(resolve, reject) {       
         var request = new XMLHttpRequest();
         if (useLocalAPIs) {
           request.open('GET', 'http://localhost:5000' + param, true);
         } else {
-          request.open('GET', 'https://api-linko-sports-center.herokuapp.com/'+paramToSend, true);
+          request.open('GET', 'https://api-linko-sports-center.herokuapp.com/'+param, true);
         }
 
         request.onload = function() {
@@ -363,63 +328,113 @@
       console.log("call API to Read Database");
       userName = decodeURI(displayName[1]);
 
-//      $.loading.start('讀取資料');
-//      allDataReady=0;
-//      getDataByAPIs();
+      allDataReady = 0;
+      // call API:51 =========================================================================      
+      paramToSend = "?API=51";         
+      var res = await callAPI(paramToSend, '讀取資料');      
 
-      var checkDataReady = setInterval(function(){ 
-        //console.log("aaa", allDataReady);
+      if (res != "API:51 challengeData 讀取失敗") {
+        //console.log(res);
+        couponData = JSON.parse(res);
+        allDataReady++; 
+      } else {
+        alert("API:51 challengeData 讀取失敗")
+      }
+      // =====================================================================================      
+
+      // call API:52 =========================================================================
+      paramToSend = "?API=52";      
+      var res = await callAPI(paramToSend, '讀取資料');  
+      
+      if (res != "API:52 challengeHistory 讀取失敗") {
+        console.log(res);
+        couponHistory = JSON.parse(res);
+        allDataReady++;          
+      } else {
+        alert("API:52 challengeHistory 讀取失敗")
+      }
+      // =====================================================================================      
+      
+
+      // call API:53 =========================================================================
+      paramToSend = "?API=53";      
+      var res = await callAPI(paramToSend, '讀取資料');   
+
+      if (res != "API:53 challengeMember 讀取失敗") {
+        //console.log(res);
+        couponMember = JSON.parse(res);  
+        allDataReady++;        
+      } else {
+        alert("API:53 challengeMember 讀取失敗")
+      }
+      // ===================================================================================== 
+
+      // call API:13 =========================================================================
+      paramToSend = "?API=13&"+"UserId="+userId[1];      
+      var res = await callAPI(paramToSend, '讀取資料');
+     
+      //res="API:13 courseMember 讀取失敗"; //故意測試錯誤         
+      if (res.substr(0,6) != "API:13") {
+        userPhoneNumber = res;
+        console.log(userPhoneNumber);
+        allDataReady++;         
+      } else {
+        alert("客戶資料讀取失敗，請稍後再試，或洽櫃台人員");
+      }
+      // =====================================================================================         
+      
+      var checkDataReady = setInterval(function(){
         if (allDataReady==4) {
           clearInterval(checkDataReady);
           console.log("Data is ready", userPhoneNumber);
-          //alert("Data is ready");
-          $.loading.end();
-          notInCoupon=[];
-          inCoupon=[];
-          myHistory=[];  
-          運動資料=[];
-          var used=false;
-          var isNow=false;
-          var inHistory=false; 
-          couponMember.forEach(function(coupon, index, array){  
-            used = false;        
-            for (var i=1; i<coupon.length;i++) {
-              //console.log(coupon[i][0]);
-              if (coupon[i][4] == userPhoneNumber) {
-                //console.log(coupon[0],userName, "已使用")
-                used = true;
-              }
-            };
-
-            isNow = false;
-            couponData.forEach(function(newCoupon, index, array){
-              if (newCoupon[0]==coupon[0]) isNow = true; 
-            });
-
-            inHistory = false;
-            couponHistory.forEach(function(oldCoupon, index, array){
-              if (oldCoupon[0]==coupon[0]) inHistory = true; 
-            });
-
-            if (!used && isNow)     notInCoupon.push(coupon[0]);
-            if (used  && isNow) {
-              inCoupon.push(coupon[0]);  
-              運動資料.push(取得運動資料(coupon[0]));
-              console.log("aaa", 取得運動資料(coupon[0]));            
-            }
-            if (used  && inHistory) myHistory.push(coupon[0]);
-          });
-                    
-          addCouponCards();
+          
+          $.loading.start("讀取運動資料");          
+          setTimeout(function(){處理挑戰賽資料();}, 100); // 用 setTimeout 讓前一行的 $.loading.start 可以執行及顯示
         }
-      }, 100);
-      
-      $.loading.start('讀取資料');
-      allDataReady=0;
-      getDataByAPIs();      
-     
+      }, 100);     
     };
-  
+
+    function 處理挑戰賽資料(){
+      notInCoupon=[];
+      inCoupon=[];
+      myHistory=[];  
+      運動資料=[];
+      var used=false;
+      var isNow=false;
+      var inHistory=false; 
+
+      couponMember.forEach(function(coupon, index, array){  
+        used = false;        
+        for (var i=1; i<coupon.length;i++) {
+          //console.log(coupon[i][0]);
+          if (coupon[i][4] == userPhoneNumber) {
+            //console.log(coupon[0],userName, "已使用")
+            used = true;
+          }
+        };
+
+        isNow = false;
+        couponData.forEach(function(newCoupon, index, array){
+          if (newCoupon[0]==coupon[0]) isNow = true; 
+        });
+
+        inHistory = false;
+        couponHistory.forEach(function(oldCoupon, index, array){
+          if (oldCoupon[0]==coupon[0]) inHistory = true; 
+        });
+
+        if (!used && isNow)     notInCoupon.push(coupon[0]);
+        if (used  && isNow) {
+          inCoupon.push(coupon[0]); 
+          運動資料.push(取得運動資料(coupon[0]));
+          console.log("aaa", 取得運動資料(coupon[0]));            
+        }
+        if (used  && inHistory) myHistory.push(coupon[0]);
+      });
+      $.loading.end();
+      addCouponCards();
+    }        
+      
     function 取得運動資料(couponNum) {
       var startDate, endDate;
       couponData.forEach(function(item, index, array){
@@ -438,7 +453,7 @@
 
       console.log(couponNum, paramToSend);      
       
-      // 必須用同步，不然 Heroku 無法接受同時多個 request
+      // 必須用同步，不然會出錯，可能是 apiForFirebase 中對於 uGym API 的呼叫重疊會造成錯誤，還沒想到好的做法，就先用同步方式
       var request=new XMLHttpRequest();
       request.open('GET', 'https://api-linko-sports-center.herokuapp.com/'+paramToSend, false);  
 
@@ -469,111 +484,7 @@
       }
       
     }
-    
-    function getDataByAPIs() {
-      var request1, reuquest2, request3, request4;
-      // call API:51 =========================================================================
-      paramToSend = "?API=51";      
-      request1 = new XMLHttpRequest()
-      if (useLocalAPIs) {
-        request1.open('GET', 'http://localhost:5000' + paramToSend, true);
-      } else {
-        request1.open('GET', 'https://api-linko-sports-center.herokuapp.com/'+paramToSend, true);
-      }
-
-      request1.onload = function() {
-        if (this.response != "API:51 challengeData 讀取失敗") {
-          //console.log(this.response);
-          couponData = JSON.parse(this.response);
-          //console.log(couponData);
-          allDataReady++;
-          request2.send();
-        } else {
-          clearInterval(checkDataReady);
-          alert("API:51 couponData 讀取失敗")
-        }
-
-      }
-      // Send request
-      request1.send();
-      // =====================================================================================      
-
-      // call API:52 =========================================================================
-      paramToSend = "?API=52";      
-      request2= new XMLHttpRequest()
-      if (useLocalAPIs) {
-        request2.open('GET', 'http://localhost:5000' + paramToSend, true);
-      } else {
-        request2.open('GET', 'https://api-linko-sports-center.herokuapp.com/'+paramToSend, true);
-      }
-
-      request2.onload = function() {
-        if (this.response != "API:52 challengeHistory 讀取失敗") {
-          console.log(this.response);
-          couponHistory = JSON.parse(this.response);
-          //console.log(couponHistory);
-          allDataReady++;
-          request3.send();          
-        } else {
-          clearInterval(checkDataReady);
-          alert("API:31 courseHistory 讀取失敗")
-        }
-
-      }
-      // =====================================================================================      
-      
-
-      // call API:53 =========================================================================
-      paramToSend = "?API=53";      
-      request3 = new XMLHttpRequest()
-      if (useLocalAPIs) {
-        request3.open('GET', 'http://localhost:5000' + paramToSend, true);
-      } else {
-        request3.open('GET', 'https://api-linko-sports-center.herokuapp.com/'+paramToSend, true);
-      }
-
-      request3.onload = function() {
-        if (this.response != "API:53 challengeMember 讀取失敗") {
-          //console.log(this.response);
-          couponMember = JSON.parse(this.response);
-          //console.log(couponMember);
-          allDataReady++;
-          request4.send();           
-        } else {
-          clearInterval(checkDataReady);
-          alert("API:32 couponMember 讀取失敗")
-        }
-
-      }
-      // ===================================================================================== 
-
-      // call API:13 =========================================================================
-      paramToSend = "?API=13&"+"UserId="+userId[1];      
-      request4 = new XMLHttpRequest()
-      if (useLocalAPIs) {
-        request4.open('GET', 'http://localhost:5000' + paramToSend, true);
-      } else {
-        request4.open('GET', 'https://api-linko-sports-center.herokuapp.com/'+paramToSend, true);
-      }
-
-      request4.onload = function() {
-        var responseMsg = this.response;
         
-        //responseMsg="API:13 courseMember 讀取失敗"; //故意測試錯誤         
-        if (responseMsg.substr(0,6) != "API:13") {
-          userPhoneNumber = responseMsg;
-          console.log(userPhoneNumber);
-          allDataReady++;         
-        } else {
-          clearInterval(checkDataReady);
-          $.loading.end();
-          alert("客戶資料讀取失敗，請稍後再試，或洽櫃台人員");
-        }
-
-      }
-      // =====================================================================================      
-    }
-    
     function addCouponCards(){
       console.log("add cards");
           
