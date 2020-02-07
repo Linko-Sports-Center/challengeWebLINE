@@ -700,18 +700,34 @@
       for (var i=0;i<inCoupon.length;i++) {
         // 尋找是否已確認
         confirmed=false;
+        freeChallenge = false;
         couponMember.forEach(function(coupon, index, array){
           if (coupon[0]==inCoupon[i]) {
             for (var j=1;j<coupon.length;j++){
               //console.log("aaa", j, coupon[j][2].substring(11,14))
-              if (coupon[j][3]==userId[1] && coupon[j][2].substring(11,14) =="已繳費") {
-                confirmed=true;
-              }
+//              if (coupon[j][3]==userId[1] && coupon[j][2].substring(11,14) =="已繳費") {
+//                confirmed=true;
+//              }
+              
+              if (coupon[j][3]==userId[1]) {
+                if (coupon[j][2] !="未繳費")  confirmed=true;
+                if (coupon[j][2] =="免費")   freeChallenge=true;                
+              }              
             };
           }
         });
         
-        var confirmedStr = (confirmed)?"已繳費":"請到櫃台繳費"
+        var confirmedStr;
+        if (freeChallenge) {
+          confirmedStr = "免費挑戰賽";
+        } else if (confirmed) {
+          confirmedStr = "已繳費";
+        } else {
+          confirmedStr = "請到櫃台繳費";
+        }
+        
+        
+        
         // 合成字串
         cardStr = cardStr11+挑戰賽編號[i] + " - " +挑戰賽名稱[i]
                  +cardStr12+挑戰賽日期[i] 
@@ -765,11 +781,17 @@
 //報名寫入 challengeMember with ["challengeId", ["userName", "日期 已參加", "未繳費"]], 成功回應 "API:60 挑戰賽參加成功" 或 "API:60 挑戰賽參加失敗"
     
     function 參加挑戰賽(challengeId){
-      console.log(userName, userId[1], userPhoneNumber, "參加挑戰賽:", challengeId, typeof challengeId);
+      
+      var challengeFee;
+      couponData.forEach(function(challenge, index, array){
+        if (challenge[0]==challengeId) challengeFee = challenge[6];
+      });
+      console.log(userName, userId[1], userPhoneNumber, "參加挑戰賽:", challengeId, challengeFee);
       
       // call API:60 =========================================================================
-      paramToSend = "?API=60&"+"UserName="+userName+"&ChallengeId="+challengeId+"&UserId="+userId[1]+"&PhoneNumber="+userPhoneNumber;
+      paramToSend = "?API=60&"+"UserName="+userName+"&ChallengeId="+challengeId+"&UserId="+userId[1]+"&PhoneNumber="+userPhoneNumber+"&Fee="+challengeFee;
       console.log(paramToSend);
+      
       var request = new XMLHttpRequest()
       if (useLocalAPIs) {
         request.open('GET', 'http://localhost:5000' + paramToSend, true);
