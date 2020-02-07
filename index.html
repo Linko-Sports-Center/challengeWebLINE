@@ -477,7 +477,7 @@
                        +"&DateStart=" + modifyDate(startDate, -1)
                        +"&DateEnd=" + modifyDate(endDate, 1)
 
-      console.log(couponNum, paramToSend);
+      //console.log(couponNum, paramToSend);
 
       // 必須用同步，不然 Heroku 無法接受同時多個 request
       request.open('GET', 'https://api-linko-sports-center.herokuapp.com/'+paramToSend, false);  
@@ -500,8 +500,8 @@
           console.log("資料度讀取錯誤");  
           return "資料度讀取錯誤";
         } else if (resObj.obj[0]== -1) {
-          console.log("無運動資料");
-          return "無運動資料";
+          console.log("尚無運動資料");
+          return "尚無運動資料";
         } else {
           //console.log(resObj.obj[0].toString());
           return resObj.obj[0].toString();
@@ -574,7 +574,7 @@
 
       request3.onload = function() {
         if (this.response != "API:53 challengeMember 讀取失敗") {
-          console.log(this.response);
+          //console.log(this.response);
           couponMember = JSON.parse(this.response);
           //console.log(couponMember);
           allDataReady++;
@@ -616,41 +616,28 @@
     
     function addCouponCards(){
       console.log("add cards");
+          
+      var cardStr1B='<br> <div class="w3-card-4" style="width:100%;"> <header class="w3-container w3-teal"> \
+                          <h5 class="s-header" style="font-family: \'Noto Sans TC\'">'; //挑戰賽編號及挑戰賽名稱
+      var cardStr1E='</h5> </header>';
       
-      // cardStr1+課程名稱+cardStr2+老師名字+cardStr3+日期時間+cardStr4+費用+cardStr5+index+cardStr6
-      var cardStr1='<br> <div class="w3-card-4" style="width:100%;"> <header class="w3-container w3-teal"> \
-                    <h5 class="s-header" style="font-family: \'Noto Sans TC\'">'; //挑戰賽編號及挑戰賽名稱
-      var cardStr2='</h5> </header> <div class="w3-container" > <p>';
-      var cardStr3='<span style="float:right">日期:';
-      var cardStr4='</span><p>卡路里: ';
-      var cardStr5='<span style="float:right">費用: ';    
-      var cardStr6='</span></p> </div> <button class="w3-button w3-block w3-indigo" onclick="參加挑戰賽(\'';
-      var cardStr7='\')" >參加挑戰賽</button> </div>';
-      
-      var cardStr6_1='</span></p> </div> <button class="w3-button w3-block w3-grey">';
-      var cardStr7_1='</button> </div>';   
-      
-      var cardStr11='<br> <div class="w3-card-4" style="width:100%;"> <header class="w3-container w3-teal"> \
-                    <h5 class="s-header" style="font-family: \'Noto Sans TC\'">'; //挑戰賽編號及挑戰賽名稱
-      var cardStr12='</h5> </header> <div class="w3-container" > <p style="margin:0px">挑戰賽期間: ';
-//      var cardStr14='</p><img src="優惠.png" alt="" style="height:50px;"></div>AAA <button class="w3-button w3-block w3-indigo" onclick="參加挑戰賽(\'';
-      var cardStr14='</p></div> <div class="w3-container" > <p style="margin:0px">挑戰賽內容: ';
-      var cardStr15='</div> <button class="w3-button w3-block w3-indigo" onclick="參加挑戰賽(\'';
-      var cardStr17='\')" >參加挑戰賽</button> </div>';
-
-      //var cardStr12_1='</h5> </header> <div class="w3-container" > <p style="margin:0px">已使用';  
-      //var cardStr13_1='</p></div></div>';
-      var cardStr12_1='</h5> </header>';  
-      var cardStr13_1='</div>';      
-//      var cardStr14_1='</p><img src="優惠.png" alt="" style="height:50px;"></div> <button class="w3-button w3-block w3-grey">';
-      var cardStr14_1='</p></div><div class="w3-container" > <p style="margin:0px">挑戰賽內容: ';
-      var cardStr15_1='</div><div class="w3-container" > <p style="margin:0px">目前運動紀錄: ';      
-      var cardStr16_1='</div> <button class="w3-button w3-block w3-grey">';      
-      var cardStr17_1='</button></div>';       
-             
+      var cardStr2B='<div class="w3-container" > <p style="margin:0px">挑戰賽期間: ';
+      var cardStr2E='</p></div>'; 
+      var cardStr3B='<div class="w3-container" > <p style="margin:0px">挑戰賽內容: ';
+      var cardStr3E='</p></div>';
+      var cardStr4B='<div class="w3-container" > <p style="margin:0px">挑戰賽費用: ';
+      var cardStr4E='</p></div>';      
+      var cardStr5B='<button class="w3-button w3-block w3-indigo" onclick="參加挑戰賽(\'';
+      var cardStr5E='\')" >參加挑戰賽</button>';
+      var cardStr6B='<div class="w3-container" > <p style="margin:0px">運動紀錄: ';
+      var cardStr6E='</p></div>';   
+      var cardStr7B='<button class="w3-button w3-block w3-grey">';
+      var cardStr7E='</button>';      
+      var cardStrEE='</div>';                 
 
       // 課程編號=[];  課程名稱=[];  老師名字=[];  日期時間=[];  卡路里=[];   費用=[];
-      var 挑戰賽編號=[]; var 挑戰賽名稱=[]; var 挑戰賽日期=[]; var 挑戰賽內容=[];  var 挑戰賽運動資料=[];
+      var 挑戰賽編號=[]; var 挑戰賽名稱=[]; var 挑戰賽日期=[]; var 挑戰賽內容=[]; 
+      var 挑戰賽費用=[];
       
       // 新增 可使用挑戰賽 卡片 ==============================================================      
       notInCoupon.forEach(function(couponN, indexN, arrayN){
@@ -662,26 +649,27 @@
             var 挑戰賽期間 = coupon[2] + " ~ " + coupon[3];
             挑戰賽日期.push(挑戰賽期間);           
             挑戰賽內容.push(coupon[4]); 
+            挑戰賽費用.push(coupon[6]);
           }
         });
       });
 
       var cardStr;
       for (var i=0;i<notInCoupon.length;i++) {
-        cardStr = cardStr11+挑戰賽編號[i] + " - " +挑戰賽名稱[i]
-                 //+cardStr12+挑戰賽內容[i] 
-                 +cardStr12+挑戰賽日期[i]
-                 +cardStr14+挑戰賽內容[i]
-                 +cardStr15+挑戰賽編號[i]        
-                 +cardStr17;
+        cardStr = cardStr1B+挑戰賽編號[i] + " - " +挑戰賽名稱[i] + cardStr1E 
+                 +cardStr2B+挑戰賽日期[i] + cardStr2E
+                 +cardStr3B+挑戰賽內容[i] + cardStr3E
+                 +cardStr4B+挑戰賽費用[i] + cardStr4E        
+                 +cardStr5B+挑戰賽編號[i] + cardStr5E
+                 +cardStrEE;        
         //console.log(cardStr);
-
         $("#availableCourses").append(cardStr);
       }
       // ================================================================================ 
 
       // 新增 已使用挑戰賽 卡片 ==============================================================
-      挑戰賽編號=[]; 挑戰賽名稱=[]; 挑戰賽內容=[]; 挑戰賽日期=[];    
+      挑戰賽編號=[]; 挑戰賽名稱=[]; 挑戰賽日期=[]; 挑戰賽內容=[]; 
+      挑戰賽費用=[];      
       inCoupon.forEach(function(couponN, indexN, arrayN){
         couponData.forEach(function(coupon, index, array){
           if (couponN == coupon[0]) {
@@ -690,7 +678,8 @@
             挑戰賽名稱.push(coupon[1]);
             var 挑戰賽期間 = coupon[2] + " ~ " + coupon[3];
             挑戰賽日期.push(挑戰賽期間);
-            挑戰賽內容.push(coupon[4]);             
+            挑戰賽內容.push(coupon[4]);  
+            挑戰賽費用.push(coupon[6]);            
           }
         });
       });
@@ -703,12 +692,7 @@
         freeChallenge = false;
         couponMember.forEach(function(coupon, index, array){
           if (coupon[0]==inCoupon[i]) {
-            for (var j=1;j<coupon.length;j++){
-              //console.log("aaa", j, coupon[j][2].substring(11,14))
-//              if (coupon[j][3]==userId[1] && coupon[j][2].substring(11,14) =="已繳費") {
-//                confirmed=true;
-//              }
-              
+            for (var j=1;j<coupon.length;j++){            
               if (coupon[j][3]==userId[1]) {
                 if (coupon[j][2] !="未繳費")  confirmed=true;
                 if (coupon[j][2] =="免費")   freeChallenge=true;                
@@ -729,16 +713,15 @@
         
         
         // 合成字串
-        cardStr = cardStr11+挑戰賽編號[i] + " - " +挑戰賽名稱[i]
-                 +cardStr12+挑戰賽日期[i] 
-                 //+cardStr12_1
-                 //+cardStr14_1
-                 //+cardStr13_1
-                 +cardStr14_1 + 挑戰賽內容[i]
-                 +cardStr15_1 + 運動資料[i].substring(0,5) + " 公里"        
-                 +cardStr16_1 + confirmedStr
-                 +cardStr17_1;
-        //console.log(cardStr);
+        cardStr = cardStr1B+挑戰賽編號[i] + " - " +挑戰賽名稱[i] + cardStr1E 
+                 +cardStr2B+挑戰賽日期[i] + cardStr2E
+                 +cardStr3B+挑戰賽內容[i] + cardStr3E
+                 +cardStr4B+挑戰賽費用[i] + cardStr4E        
+                 +cardStr6B+運動資料[i].substring(0,6) + " 公里" + cardStr6E          
+                 +cardStr7B+confirmedStr + cardStr7E  
+                 +cardStrEE;        
+        //console.log(cardStr);        
+
 
         $("#usedCoupons").append(cardStr);
       }      
@@ -754,20 +737,21 @@
             挑戰賽編號.push(coupon[0]);
             挑戰賽名稱.push(coupon[1]);
             var 挑戰賽期間 = coupon[2] + " ~ " + coupon[3];
-            挑戰賽日期.push(挑戰賽期間);                       
+            挑戰賽日期.push(挑戰賽期間); 
+            挑戰賽內容.push(coupon[4]);  
+            挑戰賽費用.push(coupon[6]);               
           }
         });
       });
-
+      
       var cardStr;
       for (var i=0;i<myHistory.length;i++) {
-        cardStr = cardStr11+挑戰賽編號[i] + " - " +挑戰賽名稱[i]
-                 +cardStr12+挑戰賽日期[i] 
-                 //+cardStr12_1
-                 //+cardStr14_1
-                 //+cardStr13_1
-                 +cardStr14_1+"已過期"
-                 +cardStr17_1;
+        cardStr = cardStr1B+挑戰賽編號[i] + " - " +挑戰賽名稱[i] + cardStr1E 
+                 +cardStr2B+挑戰賽日期[i] + cardStr2E
+                 +cardStr3B+挑戰賽內容[i] + cardStr3E
+                 +cardStr4B+挑戰賽費用[i] + cardStr4E               
+                 +cardStr7B+"已結束" + cardStr7E  
+                 +cardStrEE;               
         //console.log(cardStr);
 
         $("#oldCoupons").append(cardStr);

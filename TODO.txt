@@ -1,4 +1,0 @@
-新增 APIs on apiForFirebase
-  API:51 ==> read 挑戰賽/現在挑戰賽 --> challengeData
-  API:52 ==> read 挑戰賽/過去挑戰賽 --> challengeHistory
-  API:53 ==> read 挑戰賽管理/挑戰賽會員 --> challengeData
