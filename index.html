@@ -148,40 +148,12 @@
     <div class="w3-container" id="usedCoupons" style="font-family: 'Noto Sans TC'">
       <span><button class="w3-button w3-circle w3-teal" style="margin: 10px; width: 40px" onclick="refreshCoupons()"><i class="fa fa-refresh" style="margin-left: -3px"></i></button></span>     
       <h4 style="font-family: 'Noto Sans TC'; display: inline">已參加挑戰賽</h4>
-
-  <!--
-      <div class="w3-card-4" style="width:100%">
-        <header class="w3-container w3-teal">
-          <h4>課程名稱 - </h4>
-        </header>
-        <div class="w3-container">
-          <p>老師名字:</p>
-          <p>日期時間:</p>
-          <p>費用:</p>
-        </div>
-        <button class="w3-button w3-block w3-indigo" onclick="使用挑戰賽(1)">報名</button>
-      </div>
-  -->
     </div> 
                  
     <hr>
     <div class="w3-container" id="oldCoupons" style="font-family: 'Noto Sans TC'">
       <span><button class="w3-button w3-circle w3-teal" style="margin: 10px; width: 40px" onclick="refreshCoupons()"><i class="fa fa-refresh" style="margin-left: -3px"></i></button></span>     
       <h4 style="font-family: 'Noto Sans TC'; display: inline">已到期挑戰賽</h4>
-
-  <!--
-      <div class="w3-card-4" style="width:100%">
-        <header class="w3-container w3-teal">
-          <h4>課程名稱 - </h4>
-        </header>
-        <div class="w3-container">
-          <p>老師名字:</p>
-          <p>日期時間:</p>
-          <p>費用:</p>
-        </div>
-        <button class="w3-button w3-block w3-indigo" onclick="使用挑戰賽(1)">報名</button>
-      </div>
-  -->
     </div>                  
                   
   </div>  
@@ -284,44 +256,50 @@
       }
     }
 
-    function checkUserIdExist() {
-      //Call API:00 檢查 userId 有沒有重複參加 */
-
-      paramToSend = "?API=00" + "&UserId=" + userId[1];
-
-      var request = new XMLHttpRequest();
-      if (useLocalAPIs) {
-        request.open('GET', 'http://localhost:5000' + paramToSend, true);
-      } else {
-        request.open('GET', 'https://api-linko-sports-center.herokuapp.com/'+paramToSend, true);
-      }
-
-      request.onload = function() {
-        $.loading.end();
-        console.log(this.response);
-        if (this.response == "API:00 會員不存在") {
-          $("#joinForm").show();
-          $("#joinFormHeader").show();
-          alert("為了讓您更容易使用團體課程，挑戰賽及使用優惠券，請填寫必要資料")
+    function callAPI(param, loadingMessage) {
+      return new Promise(function(resolve, reject) {       
+        var request = new XMLHttpRequest();
+        if (useLocalAPIs) {
+          request.open('GET', 'http://localhost:5000' + param, true);
         } else {
-          $("#joinForm").hide();
-          $("#joinFormHeader").hide();
-          //$("#alreadyMessage").css("display", "block");            
-          //alert("您以前已經加入會員! 前往挑戰賽");
-          // 顯示挑戰賽表格
-          console.log("前往挑戰賽");
-          $("#courseSection").css("display", "block");
-          readCoupons();
-          //addCouponCards();
+          request.open('GET', 'https://api-linko-sports-center.herokuapp.com/'+paramToSend, true);
         }
+
+        request.onload = function() {
+          $.loading.end();
+          console.log(this.response);
+          
+          resolve(this.response);
+        }
+        // Send API request 
+        $.loading.start(loadingMessage);
+
+        request.send();    
+      });
+    }
+    
+    async function checkUserIdExist() {
+      paramToSend = "?API=00" + "&UserId=" + userId[1];      
+      var res = await callAPI(paramToSend, '檢查是否已填寫必要資料');
+      
+      if (res == "API:00 會員不存在") {
+        $("#joinForm").show();
+        $("#joinFormHeader").show();
+        alert("為了讓您更容易使用團體課程，挑戰賽及使用優惠券，請填寫必要資料")
+      } else {
+        $("#joinForm").hide();
+        $("#joinFormHeader").hide();
+        //$("#alreadyMessage").css("display", "block");            
+        //alert("您以前已經加入會員! 前往挑戰賽");
+        // 顯示挑戰賽表格
+        console.log("前往挑戰賽");
+        $("#courseSection").css("display", "block");
+        readCoupons();
+        //addCouponCards();
       }
-      // Send API request 
-      $.loading.start('檢查是否已填寫必要資料');
-     
-      request.send();
     }
 
-    function addConfirm() {
+    async function addConfirm() {
       console.log("addConfirm");
       // 檢查資料格式     
       if (   $("#name").text() == ""
@@ -360,44 +338,28 @@
       //webCourseAPI();      
 
       if (confirm(profile)) {
+        var res = await callAPI(paramToSend, '寫入資料');
 
-        // call API:01 增加新會員
-        var request = new XMLHttpRequest()
-        if (useLocalAPIs) {
-          request.open('GET', 'http://localhost:5000' + paramToSend, true);
+        if (res == "API:01 會員寫入成功") {
+          $("#joinForm").hide();
+          $("#joinFormHeader").hide();
+          //$("#finishMessage").css("display", "block"); 
+          alert("資料新增成功，前往挑戰賽")
+          // 顯示挑戰賽表格
+          console.log("前往挑戰賽");
+          $("#courseSection").css("display", "block");
+          readCoupons();
+          //addCouponCards();
+
         } else {
-          request.open('GET', 'https://api-linko-sports-center.herokuapp.com/'+paramToSend, true);
-        }
-      
-
-        request.onload = function() {
-          console.log(this.response);
-
-          if (this.response == "API:01 會員寫入成功") {
-            $("#joinForm").hide();
-            $("#joinFormHeader").hide();
-            //$("#finishMessage").css("display", "block"); 
-            alert("資料新增成功，前往挑戰賽")
-            // 顯示挑戰賽表格
-            console.log("前往挑戰賽");
-            $("#courseSection").css("display", "block");
-            readCoupons();
-            //addCouponCards();
-
-          } else {
-            alert("資料新增失敗，請洽管理員")
-            $("#joinForm").hide();
-            $("#errorMessage").css("display", "block");
-          }
-
-        }
-        // Send request
-        request.send();
-
+          alert("資料新增失敗，請洽管理員")
+          $("#joinForm").hide();
+          $("#errorMessage").css("display", "block");
+        }        
       };
     };
-
-    function readCoupons(){
+    
+    async function readCoupons(){
       console.log("call API to Read Database");
       userName = decodeURI(displayName[1]);
 
@@ -409,7 +371,7 @@
         //console.log("aaa", allDataReady);
         if (allDataReady==4) {
           clearInterval(checkDataReady);
-          console.log("Data is ready");
+          console.log("Data is ready", userPhoneNumber);
           //alert("Data is ready");
           $.loading.end();
           notInCoupon=[];
@@ -443,8 +405,7 @@
             if (used  && isNow) {
               inCoupon.push(coupon[0]);  
               運動資料.push(取得運動資料(coupon[0]));
-              console.log("aaa", 取得運動資料(coupon[0]));  
-              
+              console.log("aaa", 取得運動資料(coupon[0]));            
             }
             if (used  && inHistory) myHistory.push(coupon[0]);
           });
@@ -467,19 +428,18 @@
           endDate   = item[3];
         }
       });
-                         
-      var request=new XMLHttpRequest();
-   
-      var paramToSend = "?API=50&UserId="+userId[1]
-                       +"&SiteId="+"LINKOU" // change this for other site
-                       +"&ExerciseId=" + "00"
-                       +"&DataType=" + "distance"
-                       +"&DateStart=" + modifyDate(startDate, -1)
-                       +"&DateEnd=" + modifyDate(endDate, 1)
+                            
+      paramToSend = "?API=50&UserId="+userId[1]
+                     +"&SiteId="+"LINKOU" // change this for other site
+                     +"&ExerciseId=" + "00"
+                     +"&DataType=" + "distance"
+                     +"&DateStart=" + modifyDate(startDate, -1)
+                     +"&DateEnd=" + modifyDate(endDate, 1)
 
-      //console.log(couponNum, paramToSend);
-
+      console.log(couponNum, paramToSend);      
+      
       // 必須用同步，不然 Heroku 無法接受同時多個 request
+      var request=new XMLHttpRequest();
       request.open('GET', 'https://api-linko-sports-center.herokuapp.com/'+paramToSend, false);  
 
       request.send();
@@ -523,7 +483,7 @@
 
       request1.onload = function() {
         if (this.response != "API:51 challengeData 讀取失敗") {
-          console.log(this.response);
+          //console.log(this.response);
           couponData = JSON.parse(this.response);
           //console.log(couponData);
           allDataReady++;
@@ -717,7 +677,7 @@
                  +cardStr2B+挑戰賽日期[i] + cardStr2E
                  +cardStr3B+挑戰賽內容[i] + cardStr3E
                  +cardStr4B+挑戰賽費用[i] + cardStr4E        
-                 +cardStr6B+運動資料[i].substring(0,6) + " 公里" + cardStr6E          
+                 +cardStr6B+運動資料[i] + " 公里" + cardStr6E          
                  +cardStr7B+confirmedStr + cardStr7E  
                  +cardStrEE;        
         //console.log(cardStr);        
