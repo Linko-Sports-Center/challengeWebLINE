@@ -249,7 +249,7 @@
 
         request.onload = function() {
           $.loading.end();
-          console.log(this.response);
+          //console.log(this.response);
           
           resolve(this.response);
         }
@@ -400,7 +400,7 @@
       var res = await callAPI(paramToSend, '讀取資料');  
       
       if (res != "API:52 challengeHistory 讀取失敗") {
-        console.log(res);
+        //console.log(res);
         couponHistory = JSON.parse(res);
         allDataReady++;          
       } else {
@@ -429,7 +429,7 @@
       //res="API:13 courseMember 讀取失敗"; //故意測試錯誤         
       if (res.substr(0,6) != "API:13") {
         userPhoneNumber = res;
-        console.log(userPhoneNumber);
+        //console.log(userPhoneNumber);
         allDataReady++;         
       } else {
         alert("客戶資料讀取失敗，請稍後再試，或洽櫃台人員");
@@ -501,10 +501,10 @@
                      +"&SiteId="+"LINKOU" // change this for other site
                      +"&ExerciseId=" + "00"
                      +"&DataType=" + "distance"
-                     +"&DateStart=" + modifyDate(startDate, -1)
-                     +"&DateEnd=" + modifyDate(endDate, 1)
+                     +"&DateStart=" + modifyDate(startDate, 0)
+                     +"&DateEnd=" + modifyDate(endDate, 0)
 
-      console.log(couponNum, paramToSend);      
+      //console.log(couponNum, paramToSend);      
       
       // 必須用同步，不然會出錯，可能是 apiForFirebase 中對於 uGym API 的呼叫重疊會造成錯誤，還沒想到好的做法，就先用同步方式
       var request=new XMLHttpRequest();
@@ -557,6 +557,8 @@
       var cardStr6E='</p></div>';   
       var cardStr7B='<button class="w3-button w3-block w3-grey">';
       var cardStr7E='</button>';      
+      var cardStr8B='<button class="w3-button w3-block w3-indigo" onclick="兌換(\'';
+      var cardStr8E='\')" >兌換</button>';      
       var cardStrEE='</div>';                 
 
       // 課程編號=[];  課程名稱=[];  老師名字=[];  日期時間=[];  卡路里=[];   費用=[];
@@ -610,6 +612,7 @@
 
       var cardStr;
       var confirmed=false;
+      var 已兌換=false;
       for (var i=0;i<inCoupon.length;i++) {
         // 尋找是否已確認
         confirmed=false;
@@ -618,8 +621,10 @@
           if (coupon[0]==inCoupon[i]) {
             for (var j=1;j<coupon.length;j++){            
               if (coupon[j][3]==userId[1]) {
-                if (coupon[j][2] !="未繳費")  confirmed=true;
+                if (coupon[j][2] =="已繳費")  confirmed=true;
+                if (coupon[j][2] =="已兌換")  已兌換=true;                 
                 if (coupon[j][2] =="免費")   freeChallenge=true;                
+                if (coupon[j][2] =="0")     freeChallenge=true;                 
               }              
             };
           }
@@ -627,16 +632,24 @@
         
         var confirmedStr;
         if (freeChallenge) {
-          confirmedStr = "免費挑戰賽";
+          confirmedStr = "兌換";//"免費挑戰賽";
         } else if (confirmed) {
-          confirmedStr = "已繳費";
+          confirmedStr = "兌換";//"已繳費";
+        } else if (已兌換){
+          confirmedStr = "已兌換";
         } else {
           confirmedStr = "請到櫃台繳費";
         }
         
-        
-        
-        // 合成字串
+        if (confirmedStr == "兌換") {
+        cardStr = cardStr1B+挑戰賽編號[i] + " - " +挑戰賽名稱[i] + cardStr1E 
+                 +cardStr2B+挑戰賽日期[i] + cardStr2E
+                 +cardStr3B+挑戰賽內容[i] + cardStr3E
+                 +cardStr4B+挑戰賽費用[i] + cardStr4E        
+                 +cardStr6B+運動資料[i]   + " 公里" + cardStr6E          
+                 +cardStr8B+挑戰賽編號[i] + cardStr8E  
+                 +cardStrEE;                 
+        } else {
         cardStr = cardStr1B+挑戰賽編號[i] + " - " +挑戰賽名稱[i] + cardStr1E 
                  +cardStr2B+挑戰賽日期[i] + cardStr2E
                  +cardStr3B+挑戰賽內容[i] + cardStr3E
@@ -644,6 +657,7 @@
                  +cardStr6B+運動資料[i] + " 公里" + cardStr6E          
                  +cardStr7B+confirmedStr + cardStr7E  
                  +cardStrEE;        
+        }
         //console.log(cardStr);        
 
 
@@ -689,6 +703,7 @@
 //報名寫入 challengeMember with ["challengeId", ["userName", "日期 已參加", "未繳費"]], 成功回應 "API:60 挑戰賽參加成功" 或 "API:60 挑戰賽參加失敗"
     
     function 參加挑戰賽(challengeId){
+      console.log("報名挑戰賽:", challengeId);
       
       var challengeFee;
       couponData.forEach(function(challenge, index, array){
@@ -714,6 +729,35 @@
       // Send request
       request.send();      
       
+    }
+    
+    function 兌換(challengeId){
+      console.log("兌換:", challengeId);
+      
+      var challengeFee;
+      couponData.forEach(function(challenge, index, array){
+        if (challenge[0]==challengeId) challengeFee = challenge[6];
+      });
+      console.log(userName, userId[1], userPhoneNumber, "兌換挑戰賽:", challengeId, challengeFee);
+      
+      // call API:61 =========================================================================
+      paramToSend = "?API=61&"+"UserName="+userName+"&ChallengeId="+challengeId+"&UserId="+userId[1]+"&PhoneNumber="+userPhoneNumber+"&Fee="+challengeFee;
+      console.log(paramToSend);
+      
+      var request = new XMLHttpRequest()
+      if (useLocalAPIs) {
+        request.open('GET', 'http://localhost:5000' + paramToSend, true);
+      } else {
+        request.open('GET', 'https://api-linko-sports-center.herokuapp.com/'+paramToSend, true);
+      }
+
+      request.onload = function() {
+        alert(this.response);
+        refreshCoupons();
+      }
+      // Send request
+      request.send();      
+            
     }
     
     function refreshCoupons() {
