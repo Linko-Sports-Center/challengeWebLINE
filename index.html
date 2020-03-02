@@ -501,8 +501,8 @@
                      +"&SiteId="+"LINKOU" // change this for other site
                      +"&ExerciseId=" + "00"
                      +"&DataType=" + "distance"
-                     +"&DateStart=" + modifyDate(startDate, -1)
-                     +"&DateEnd=" + modifyDate(endDate, 1)
+                     +"&DateStart=" + modifyDate(startDate, 0)
+                     +"&DateEnd=" + modifyDate(endDate, 0)
 
       console.log(couponNum, paramToSend);      
       
@@ -618,8 +618,9 @@
           if (coupon[0]==inCoupon[i]) {
             for (var j=1;j<coupon.length;j++){            
               if (coupon[j][3]==userId[1]) {
-                if (coupon[j][2] !="未繳費")  confirmed=true;
+                if (coupon[j][2] =="已繳費")  confirmed=true;
                 if (coupon[j][2] =="免費")   freeChallenge=true;                
+                if (coupon[j][2] =="0")     freeChallenge=true;                 
               }              
             };
           }
