@@ -8,7 +8,7 @@
   <!--  設定參數-->
   <script>
     var useLocalAPIs = false;
-    var version = "1.3";
+    var version = "1.4";
   </script>
   
   <meta charset="UTF-8">
@@ -212,6 +212,9 @@
     var allDataReady=0;
         
     var 運動資料=[];
+    var 挑戰賽兌獎編號=[];
+    var 兌獎條件=[];
+    var 獎品數量=[];
 
     notInCoupon=[];
     inCoupon=[];
@@ -617,12 +620,15 @@
         couponData.forEach(function(coupon, index, array){
           if (couponN == coupon[0]) {
             //console.log(coupon);
-            挑戰賽編號.push(coupon[0]);
+            挑戰賽編號.push(coupon[0]); 
+            挑戰賽兌獎編號.push(coupon[0]);
             挑戰賽名稱.push(coupon[1]);
             var 挑戰賽期間 = coupon[2] + " ~ " + coupon[3];
             挑戰賽日期.push(挑戰賽期間);
             挑戰賽內容.push(coupon[4]);  
-            挑戰賽費用.push(coupon[6]);            
+            挑戰賽費用.push(coupon[6]);  
+            兌獎條件.push(coupon[7]); 
+            獎品數量.push(coupon[8]);                      
           }
         });
       });
@@ -802,7 +808,37 @@
       console.log("兌換獎品", challengeId);
       $("#兌換碼").val("");
       $("#核銷Modal").css("display", "block");   
-      兌換挑戰賽Id = challengeId;
+      兌換挑戰賽Id = challengeId;   
+      
+      var 挑戰賽兌獎index=-1;
+      挑戰賽兌獎編號.forEach(function(item, index, array){
+        if (item == 兌換挑戰賽Id) 挑戰賽兌獎index = index;
+      });
+      
+      console.log(挑戰賽兌獎index, 兌獎條件[挑戰賽兌獎index], 獎品數量[挑戰賽兌獎index], 運動資料[挑戰賽兌獎index]);
+       
+      if (isNaN(parseFloat(運動資料[挑戰賽兌獎index])) || (parseFloat(運動資料[挑戰賽兌獎index]) < parseFloat(兌獎條件[挑戰賽兌獎index]))) {
+        alert("抱歉，尚未達兌獎條件");
+        $("#核銷Modal").css("display", "none");
+        return 0;
+      }
+      
+      var 已兌換數=0;
+      couponMember.forEach(function(item, index, array){
+        if (item[0]==兌換挑戰賽Id) {
+          for (var i=1; i< item.length; i++){
+            if (item[i][2] == "已兌換") 已兌換數++;
+          }
+        }
+      });
+      
+      console.log("已兌換",已兌換數, 獎品數量[挑戰賽兌獎index]);
+      
+      if (已兌換數==獎品數量[挑戰賽兌獎index]) {
+        alert("抱歉，獎品已兌完");
+        $("#核銷Modal").css("display", "none");
+      }
+      
     }    
     
     function 確認兌換獎品按鈕() {
