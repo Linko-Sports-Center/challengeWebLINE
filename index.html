@@ -8,7 +8,7 @@
   <!--  設定參數-->
   <script>
     var useLocalAPIs = false;
-    var version = "1.2";
+    var version = "1.3";
   </script>
   
   <meta charset="UTF-8">
@@ -25,6 +25,8 @@
   <script src="js/loading.js"></script>  
 
   <link rel="stylesheet" href="css/mescroll.css">
+    <link rel="stylesheet" href="css/coupon.css" />
+    
   <style type="text/css">
     /*mescroll 滚动区域*/
     .mescroll {
@@ -138,6 +140,21 @@
     </div>                  
                   
   </div>  
+  
+  <!-- 核銷 Modal -->
+  <div id="核銷Modal" class="modal" style="font-family: 'Noto Sans TC'">
+    <!-- Modal content -->
+    <div class="modal-content">
+      <span onclick="核銷取消按鈕()" class="close">&times;</span>
+      <p style="font-size:20px;">請洽櫃台人員兌換獎品</p>
+      <!--      <p style="font-size:20px">輸入兌換號碼</p>-->
+      <input id="兌換碼" class="w3-input" type="text" placeholder="請輸入兌換碼"></p>
+      <p onclick="確認兌換獎品按鈕()" style="text-align:center; color:white; background-color:indigo; 
+         border-radius: 5px; border-width:0px; font-size:20px; padding:10px; margin:30px auto auto 10px;
+      ">確認兌換獎品</p>
+    </div>
+  </div>
+          
   </div>
   <script>
     $("#versionStr1").text("v."+version);
@@ -384,7 +401,7 @@
       allDataReady = 0;
       // call API:51 =========================================================================      
       paramToSend = "?API=51";         
-      var res = await callAPI(paramToSend, '讀取資料');      
+      var res = await callAPI(paramToSend, '讀取挑戰賽資料');      
 
       if (res != "API:51 challengeData 讀取失敗") {
         //console.log(res);
@@ -397,7 +414,7 @@
 
       // call API:52 =========================================================================
       paramToSend = "?API=52";      
-      var res = await callAPI(paramToSend, '讀取資料');  
+      var res = await callAPI(paramToSend, '讀取歷史資料');  
       
       if (res != "API:52 challengeHistory 讀取失敗") {
         //console.log(res);
@@ -411,7 +428,7 @@
 
       // call API:53 =========================================================================
       paramToSend = "?API=53";      
-      var res = await callAPI(paramToSend, '讀取資料');   
+      var res = await callAPI(paramToSend, '讀取報名資料');   
 
       if (res != "API:53 challengeMember 讀取失敗") {
         //console.log(res);
@@ -424,7 +441,7 @@
 
       // call API:13 =========================================================================
       paramToSend = "?API=13&"+"UserId="+userId[1];      
-      var res = await callAPI(paramToSend, '讀取資料');
+      var res = await callAPI(paramToSend, '讀取會員資料');
      
       //res="API:13 courseMember 讀取失敗"; //故意測試錯誤         
       if (res.substr(0,6) != "API:13") {
@@ -441,7 +458,7 @@
           clearInterval(checkDataReady);
           console.log("Data is ready", userPhoneNumber);
           
-          $.loading.start("讀取運動資料");          
+          $.loading.start("讀取運動資料, 時間可能會久一點...");          
           setTimeout(function(){處理挑戰賽資料();}, 100); // 用 setTimeout 讓前一行的 $.loading.start 可以執行及顯示
         }
       }, 100);     
@@ -557,8 +574,8 @@
       var cardStr6E='</p></div>';   
       var cardStr7B='<button class="w3-button w3-block w3-grey">';
       var cardStr7E='</button>';      
-      var cardStr8B='<button class="w3-button w3-block w3-indigo" onclick="兌換(\'';
-      var cardStr8E='\')" >兌換</button>';      
+      var cardStr8B='<button class="w3-button w3-block w3-indigo" onclick="兌換獎品(\'';
+      var cardStr8E='\')" >兌換獎品</button>';      
       var cardStrEE='</div>';                 
 
       // 課程編號=[];  課程名稱=[];  老師名字=[];  日期時間=[];  卡路里=[];   費用=[];
@@ -779,6 +796,31 @@
       if (date < 10) date = "0" + date;  
       return (year + "-" + month + "-" + date);  
     } 
+
+    var 兌換挑戰賽Id;
+    function 兌換獎品(challengeId) {
+      console.log("兌換獎品", challengeId);
+      $("#兌換碼").val("");
+      $("#核銷Modal").css("display", "block");   
+      兌換挑戰賽Id = challengeId;
+    }    
+    
+    function 確認兌換獎品按鈕() {
+      console.log("確認兌換獎品");
+      $("#核銷Modal").css("display", "none");          
+      if ($("#兌換碼").val()=="4185") {
+        console.log("兌換碼正確");
+        兌換(兌換挑戰賽Id);
+      } else {
+        console.log("兌換碼錯誤");
+        alert("兌換碼錯誤");
+      }
+    }    
+    
+    function 核銷取消按鈕() {
+      console.log("核銷取消按鈕");
+      $("#核銷Modal").css("display", "none");          
+    }
     
   </script>
 
